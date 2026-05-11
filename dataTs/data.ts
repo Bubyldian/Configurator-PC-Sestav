@@ -17,7 +17,7 @@ export interface SoftwareData {
     licenseType: 'OEM' | 'Retail';
 }
 
-export const EXTRA_PRICES = {
+export const SERVICE_PRICES = {
     OFFICE_365: 1490,
     FLASH_DRIVE: 250,
     HDD_PER_TB: 650
