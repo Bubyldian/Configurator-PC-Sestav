@@ -1,6 +1,7 @@
 import { ConfigItem } from "./ConfigItem.js";
 import { SERVICE_PRICES } from "./data.js";
 
+// trida pro operacni system a sluzby
 export class Software extends ConfigItem {
     constructor(
         id: number,
@@ -24,6 +25,8 @@ export class Software extends ConfigItem {
         if (this.includeOffice) addons.push("MS Office 365");
         if (this.includeFlash) addons.push("Recovery USB flash disk");
         
-        return `Software: ${this.getName()}${addons.length > 0 ? " + " + addons.join(" + ") : ""}`;
+        let detail = `Software: ${this.getName()}`;
+        if (addons.length > 0) detail += ` + ${addons.join(" + ")}`;
+        return detail;
     }
 }

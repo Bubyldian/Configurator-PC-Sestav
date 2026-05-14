@@ -1,6 +1,8 @@
+// zakladni trida pro vsechno
 export class ConfigItem {
     constructor(id, name, basePrice) {
         this.quantity = 1;
+        // overeni spravnosti dat
         if (id <= 0)
             throw new Error("ID musí být kladné číslo.");
         if (!name.trim())

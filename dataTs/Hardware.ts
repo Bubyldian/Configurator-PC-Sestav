@@ -1,6 +1,7 @@
 import { ConfigItem } from "./ConfigItem.js";
 import { SERVICE_PRICES } from "./data.js";
 
+// trida pro hardwarove dily
 export class Hardware extends ConfigItem {
     private type: string; 
     private socket?: string;
@@ -21,6 +22,11 @@ export class Hardware extends ConfigItem {
         this.capacity = capacity;
         this.socket = socket;
         this.ramType = ramType;
+
+        // kontrola pameti pri vytvareni objektu
+        if (type === 'RAM' && !this.validateMemoryLimit(capacity)) {
+            throw new Error("Překročen limit paměti pro tenhle typ.");
+        }
     }
 
     public validateMemoryLimit(amount: number): boolean {
@@ -32,6 +38,7 @@ export class Hardware extends ConfigItem {
     calculatePrice(): number {
         let total = this.basePrice;
         
+        // pridani ceny za kazdy dalsi TB nad 2tb
         if (this.type === 'HDD' && this.capacity > 2000) {
             const extraSize = this.capacity - 2000;
             const extraTb = extraSize / 1000;
