@@ -1,11 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>pc konfigurator</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <script type="module" src="dist/main.js"></script>
+    <div class="container">
+        <header>
+            <h1>pc konfigurator</h1>
+            <p>sestav si svuj idealni pocitac krok za krokem</p>
+        </header>
+
+        <main>
+            <div class="card" id="step-1">
+                <label for="cpu">1. vyber procesor (cpu):</label>
+                <select id="cpu"><option value="">-- zvolte procesor --</option></select>
+            </div>
+
+            <div class="card disabled" id="step-mb">
+                <label for="mb">2. vyber zakladni desku (musi sedet socket):</label>
+                <select id="mb" disabled><option value="">-- nejdriv vyber procesor --</option></select>
+            </div>
+
+            <div class="card disabled" id="step-ram">
+                <label for="ram">3. vyber operacni pamet (ram):</label>
+                <select id="ram" disabled><option value="">-- nejdriv vyber procesor --</option></select>
+            </div>
+
+            <div class="card" id="step-storage">
+                <label for="ssd">4. vyber hlavni disk (ssd):</label>
+                <select id="ssd"><option value="">-- zvolte ssd --</option></select>
+                
+                <label for="hdd" class="mt-10">volitelny ulozny prostor (hdd):</label>
+                <select id="hdd"><option value="">-- bez hdd --</option></select>
+            </div>
+
+            <div class="card" id="step-gpu">
+                <label for="gpu">5. vyber grafickou kartu (gpu):</label>
+                <select id="gpu"><option value="">-- zvolte grafiku --</option></select>
+            </div>
+
+            <div class="card" id="step-os">
+                <label for="os">6. operacni system a sluzby:</label>
+                <select id="os"><option value="">-- zvolte system --</option></select>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="office"> <label for="office">pridat ms office 365</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="flash"> <label for="flash">pridat zachrannou usb flashku</label>
+                </div>
+            </div>
+
+            <button id="calc-btn" disabled>spocitat cenu sestavy</button>
+
+            <div id="result" class="card result-card hidden">
+                <h2>vase sestava</h2>
+                <ul id="result-list"></ul>
+                <h3 id="total-price"></h3>
+            </div>
+        </main>
+    </div>
+
+    <script src=""></script>
+    <script type="module" src="./dist/main.js"></script>
 </body>
 </html>
