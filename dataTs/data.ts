@@ -44,3 +44,15 @@ export const SOFTWARE_CATALOG = [
     { id: 102, name: "Windows 11 Home", basePrice: 2500, version: '11', edition: 'Home', licenseType: 'OEM' },
     { id: 103, name: "Windows 11 Pro", basePrice: 3800, version: '11', edition: 'Pro', licenseType: 'Retail' }
 ];
+
+
+
+
+const zxc= {
+    "ssd": [
+        { id: 11, name: "SATA SSD 500GB", basePrice: 1100, type: 'SSD', capacity: 500 },
+        { id: 12, name: "M.2 NVMe 1TB", basePrice: 1900, type: 'SSD', capacity: 1000 },
+        { id: 13, name: "M.2 NVMe 2TB", basePrice: 3500, type: 'SSD', capacity: 2000 }
+    ]
+}
+zxc["ssd"]
