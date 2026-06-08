@@ -3,68 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pc konfigurator</title>
+    <title>PC Konfigurátor</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>pc konfigurator</h1>
-            <p>sestav si svuj idealni pocitac krok za krokem</p>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="logo">PC <span class="blue-dot">Configurator</span></div>
+            <div class="header-search">
+                <input type="text" placeholder="Hledat komponenty..." disabled>
+                <button class="search-btn">Najít</button>
+            </div>
         </header>
 
-        <main>
-            <div class="card" id="step-1">
-                <label for="cpu">1. vyber procesor (cpu):</label>
-                <select id="cpu"><option value="">-- zvolte procesor --</option></select>
+        <section class="preset-bar">
+            <h2>Nová sestava</h2>
+            <div class="preset-buttons">
+                <button id="preset-office" class="btn-preset">🏢 Kancelářský PC (AM4)</button>
+                <button id="preset-home" class="btn-preset">🏠 Multimédia (Intel)</button>
+                <button id="preset-gaming" class="btn-preset">🎮 Herní PC (AM5)</button>
             </div>
+        </section>
 
-            <div class="card disabled" id="step-mb">
-                <label for="mb">2. vyber zakladni desku (musi sedet socket):</label>
-                <select id="mb" disabled><option value="">-- nejdriv vyber procesor --</option></select>
-            </div>
+        <div class="flex-layout">
+            <main class="configurator-form">
+                <h3 class="section-title">Konfigurace</h3>
 
-            <div class="card disabled" id="step-ram">
-                <label for="ram">3. vyber operacni pamet (ram):</label>
-                <select id="ram" disabled><option value="">-- nejdriv vyber procesor --</option></select>
-            </div>
-
-            <div class="card" id="step-storage">
-                <label for="ssd">4. vyber hlavni disk (ssd):</label>
-                <select id="ssd"><option value="">-- zvolte ssd --</option></select>
-                
-                <label for="hdd" class="mt-10">volitelny ulozny prostor (hdd):</label>
-                <select id="hdd"><option value="">-- bez hdd --</option></select>
-            </div>
-
-            <div class="card" id="step-gpu">
-                <label for="gpu">5. vyber grafickou kartu (gpu):</label>
-                <select id="gpu"><option value="">-- zvolte grafiku --</option></select>
-            </div>
-
-            <div class="card" id="step-os">
-                <label for="os">6. operacni system a sluzby:</label>
-                <select id="os"><option value="">-- zvolte system --</option></select>
-                
-                <div class="checkbox-group">
-                    <input type="checkbox" id="office"> <label for="office">pridat ms office 365</label>
+                <div class="form-group">
+                    <label for="cpu"><span class="step-num">✓</span> 1. Procesor (CPU)</label>
+                    <select id="cpu"></select>
                 </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="flash"> <label for="flash">pridat zachrannou usb flashku</label>
+
+                <div class="form-group">
+                    <label for="mb"><span class="step-num">✓</span> 2. Základní deska (MB)</label>
+                    <select id="mb" disabled></select>
                 </div>
-            </div>
 
-            <button id="calc-btn" disabled>spocitat cenu sestavy</button>
+                <div class="form-group">
+                    <label for="ram"><span class="step-num">✓</span> 3. Paměť (RAM)</label>
+                    <select id="ram" disabled></select>
+                </div>
 
-            <div id="result" class="card result-card hidden">
-                <h2>vase sestava</h2>
-                <ul id="result-list"></ul>
-                <h3 id="total-price"></h3>
+                <div class="form-group">
+                    <label for="ssd"><span class="step-num">✓</span> 4. Rychlý disk (SSD)</label>
+                    <select id="ssd"></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="hdd"><span class="step-num">✓</span> Volitelný disk (HDD)</label>
+                    <select id="hdd">
+                        <option value="">Bez HDD</option>
+                        <option value="2000">HDD 2TB (+2600 Kč)</option>
+                        <option value="4000">HDD 4TB (+5200 Kč)</option>
+                        <option value="8000">HDD 8TB (+10400 Kč)</option>
+                        <option value="16000">HDD 16TB (+20800 Kč)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="gpu"><span class="step-num">✓</span> 5. Grafika (GPU)</label>
+                    <select id="gpu"></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="os"><span class="step-num">✓</span> 6. Systém (OS)</label>
+                    <select id="os"></select>
+                </div>
+
+                <div class="services-group card">
+                    <h4>Doplňky</h4>
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="office"> MS Office 365 (+1490 Kč)
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="flash"> Boot USB 8GB (+250 Kč)
+                    </label>
+                </div>
+            </main>
+
+            <aside class="summary-sidebar" id="result">
+                <div class="sticky-sidebar card">
+                    <h3>Aktuální sestava</h3>
+                    <hr>
+                    <ul id="result-list" class="summary-list"></ul>
+                    <hr>
+                    <div class="total-price-row">
+                        <span>Cena:</span>
+                        <h2 id="total-price">0 Kč</h2>
+                    </div>
+                    <button class="btn-checkout">🛒 Do košíku</button>
+                </div>
+            </aside>
+        </div>
+
+        <section class="cart-section card">
+            <div class="cart-header">
+                <span class="cart-icon">🛒</span>
+                <h3>Nákupní košík</h3>
             </div>
-        </main>
+            <hr>
+            <ul id="cart-list" class="cart-list">
+                <li class="empty-cart-msg">košík je prázdný</li>
+            </ul>
+        </section>
     </div>
-
-    <script src=""></script>
     <script type="module" src="./dist/main.js"></script>
 </body>
 </html>

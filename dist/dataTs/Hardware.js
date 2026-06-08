@@ -1,6 +1,5 @@
 import { ConfigItem } from "./ConfigItem.js";
-import { SERVICE_PRICES } from "./data.js";
-// trida pro hardwarove dily
+// trida pro klasicke hardwarove komponenty z katalogu
 export class Hardware extends ConfigItem {
     constructor(id, name, basePrice, type, capacity = 0, socket, ramType) {
         super(id, name, basePrice);
@@ -8,7 +7,7 @@ export class Hardware extends ConfigItem {
         this.capacity = capacity;
         this.socket = socket;
         this.ramType = ramType;
-        // kontrola pameti pri vytvareni objektu
+        // kontrola pameti ram pri vytvoreni objektu at neprekrocime limity desky
         if (type === 'RAM' && !this.validateMemoryLimit(capacity)) {
             throw new Error("Překročen limit paměti pro tenhle typ.");
         }
@@ -21,14 +20,8 @@ export class Hardware extends ConfigItem {
         return true;
     }
     calculatePrice() {
-        let total = this.basePrice;
-        // pridani ceny za kazdy dalsi TB nad 2tb
-        if (this.type === 'HDD' && this.capacity > 2000) {
-            const extraSize = this.capacity - 2000;
-            const extraTb = extraSize / 1000;
-            total += extraTb * SERVICE_PRICES.HDD_PER_TB;
-        }
-        return total * this.quantity;
+        // tady uz neni zadne slozite hdd, proste jenom zakladni cena krat pocet kusu
+        return this.basePrice * this.quantity;
     }
     getDetails() {
         let details = `Typ: ${this.type}`;

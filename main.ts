@@ -1,194 +1,259 @@
 import { Software } from "./dataTs/Software.js";
 import { Hardware } from "./dataTs/Hardware.js";
-import { HARDWARE_CATALOG, SOFTWARE_CATALOG } from "./dataTs/data.js";
+import { HARDWARE_CATALOG, SOFTWARE_CATALOG, SERVICE_PRICES } from "./dataTs/data.js";
 import { ConfigItem } from "./dataTs/ConfigItem.js";
 
-// ziskani elementu z html
+// state kosiku
+let cartItems: ConfigItem[] = [];
+
+// dom elementy
 const cpuSelect = document.getElementById("cpu") as HTMLSelectElement;
 const mbSelect = document.getElementById("mb") as HTMLSelectElement;
 const ramSelect = document.getElementById("ram") as HTMLSelectElement;
 const ssdSelect = document.getElementById("ssd") as HTMLSelectElement;
-const hddSelect = document.getElementById("hdd") as HTMLSelectElement;
+const hddSelect = document.getElementById("hdd") as HTMLSelectElement; 
 const gpuSelect = document.getElementById("gpu") as HTMLSelectElement;
 const osSelect = document.getElementById("os") as HTMLSelectElement;
 
 const chkOffice = document.getElementById("office") as HTMLInputElement;
 const chkFlash = document.getElementById("flash") as HTMLInputElement;
-const calcBtn = document.getElementById("calc-btn") as HTMLButtonElement;
 
-const resultDiv = document.getElementById("result") as HTMLDivElement;
 const resultList = document.getElementById("result-list") as HTMLUListElement;
-const totalPriceH3 = document.getElementById("total-price") as HTMLHeadingElement;
+const totalPriceEl = document.getElementById("total-price") as HTMLHeadingElement;
+const btnCheckout = document.querySelector(".btn-checkout") as HTMLButtonElement;
+const cartList = document.getElementById("cart-list") as HTMLUListElement;
 
-// pomocne funkce pro naplneni selectu
+// gen moznosti selectu pomoci foreach
 function populateSelect(select: HTMLSelectElement, items: any[]) {
-    // smazeme stare moznosti krome prvni (vyzva k vyberu)
-    select.innerHTML = '<option value="">-- vyberte --</option>';
-    for (let i = 0; i < items.length; i++) {
-        const option = document.createElement("option");
-        option.value = items[i].id.toString();
-        option.textContent = `${items[i].name} (${items[i].basePrice} kc)`;
-        select.appendChild(option);
-    }
+    select.innerHTML = '<option value="">-- vyber --</option>';
+    items.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.id.toString();
+        opt.textContent = `${item.name} (${item.basePrice} kč)`;
+        select.appendChild(opt);
+    });
 }
 
-// inicializace zakladnich vyberu (ktere nezavisi na nicem jinem)
+// init app
 function init() {
-    const cpus = [];
-    const ssds = [];
-    const hdds = [];
-    const gpus = [];
-
-    for (let i = 0; i < HARDWARE_CATALOG.length; i++) {
-        const item = HARDWARE_CATALOG[i];
-        if (item.type === 'CPU') cpus.push(item);
-        if (item.type === 'SSD') ssds.push(item);
-        if (item.type === 'HDD') hdds.push(item);
-        if (item.type === 'GPU') gpus.push(item);
-    }
-
-    populateSelect(cpuSelect, cpus);
-    populateSelect(ssdSelect, ssds);
-    populateSelect(hddSelect, hdds);
-    populateSelect(gpuSelect, gpus);
+    populateSelect(cpuSelect, HARDWARE_CATALOG.CPU);
+    populateSelect(ssdSelect, HARDWARE_CATALOG.SSD);
+    populateSelect(gpuSelect, HARDWARE_CATALOG.GPU);
     populateSelect(osSelect, SOFTWARE_CATALOG);
+    validateSelection();
 }
 
-// logika pro vyber procesoru (zpristupni spravne desky a pameti)
-cpuSelect.addEventListener("change", () => {
+// lock tlacitka pri prazdnem poli
+function validateSelection() {
     const cpuId = parseInt(cpuSelect.value);
     
-    // pokud uzivatel vyber zrusi, zase vsechno zamkneme
     if (isNaN(cpuId)) {
-        mbSelect.innerHTML = '<option value="">-- nejdriv vyber procesor --</option>';
-        ramSelect.innerHTML = '<option value="">-- nejdriv vyber procesor --</option>';
         mbSelect.disabled = true;
         ramSelect.disabled = true;
-        document.getElementById("step-mb")?.classList.add("disabled");
-        document.getElementById("step-ram")?.classList.add("disabled");
-        validateForm();
-        return;
-    }
-
-    let selectedCpu = null;
-    for (let i = 0; i < HARDWARE_CATALOG.length; i++) {
-        if (HARDWARE_CATALOG[i].id === cpuId) {
-            selectedCpu = HARDWARE_CATALOG[i];
-            break;
-        }
-    }
-
-    if (selectedCpu) {
-        const mbs = [];
-        const rams = [];
-
-        for (let i = 0; i < HARDWARE_CATALOG.length; i++) {
-            const item = HARDWARE_CATALOG[i];
-            
-            // deska musi mit stejny socket jako cpu
-            if (item.type === 'MB' && item.socket === selectedCpu.socket) {
-                mbs.push(item);
-            }
-            
-            // validace pameti podle platformy
-            if (item.type === 'RAM') {
-                if (selectedCpu.socket === 'AM4' && item.ramType === 'DDR4') rams.push(item);
-                if (selectedCpu.socket === 'AM5' && item.ramType === 'DDR5') rams.push(item);
-                if (selectedCpu.socket === 'LGA1700') rams.push(item); // intel bere obe
-            }
-        }
-
-        // odemknuti formularu
-        populateSelect(mbSelect, mbs);
-        populateSelect(ramSelect, rams);
+        mbSelect.innerHTML = '<option value="">-- cekam na cpu --</option>';
+        ramSelect.innerHTML = '<option value="">-- cekam na cpu --</option>';
+    } else {
         mbSelect.disabled = false;
         ramSelect.disabled = false;
-        document.getElementById("step-mb")?.classList.remove("disabled");
-        document.getElementById("step-ram")?.classList.remove("disabled");
     }
-    
-    validateForm();
-});
 
-// validace pro povoleni tlacitka (musi byt vyplneny povinne pole)
-function validateForm() {
-    if (cpuSelect.value && mbSelect.value && ramSelect.value && ssdSelect.value && gpuSelect.value && osSelect.value) {
-        calcBtn.disabled = false;
-    } else {
-        calcBtn.disabled = true;
-    }
+    const isComplete = cpuSelect.value && mbSelect.value && ramSelect.value && 
+                       ssdSelect.value && gpuSelect.value && osSelect.value;
+
+    btnCheckout.disabled = !isComplete;
+    btnCheckout.style.opacity = isComplete ? "1" : "0.5";
+    btnCheckout.style.cursor = isComplete ? "pointer" : "not-allowed";
 }
 
-// posluchace pro zmeny ve formulari pro kontrolu tlacitka
-mbSelect.addEventListener("change", validateForm);
-ramSelect.addEventListener("change", validateForm);
-ssdSelect.addEventListener("change", validateForm);
-gpuSelect.addEventListener("change", validateForm);
-osSelect.addEventListener("change", validateForm);
+// change cpu -> filtr mb a ram pomoci filter
+cpuSelect.addEventListener("change", () => {
+    validateSelection();
+    const cpuId = parseInt(cpuSelect.value);
+    if (isNaN(cpuId)) return calculateTotal();
 
-// vytvoreni objektu a vypocet po kliknuti
-calcBtn.addEventListener("click", () => {
-    // vyuzivame oop tridy z faze 2
-    const setup: ConfigItem[] = [];
+    // nalezni cpu pres find
+    const selectedCpu = HARDWARE_CATALOG.CPU.find(cpu => cpu.id === cpuId);
 
-    // funkce pro hledani v katalogu
-    const getHwData = (id: number) => {
-        for (let i = 0; i < HARDWARE_CATALOG.length; i++) {
-            if (HARDWARE_CATALOG[i].id === id) return HARDWARE_CATALOG[i];
-        }
-        return null;
-    };
+    if (selectedCpu) {
+        // filtruj desky kompatibilni se socketem
+        const validMbs = HARDWARE_CATALOG.MB.filter(mb => mb.socket === selectedCpu.socket);
+        populateSelect(mbSelect, validMbs);
 
-    const hwIds = [
-        parseInt(cpuSelect.value), parseInt(mbSelect.value), 
-        parseInt(ramSelect.value), parseInt(ssdSelect.value), 
+        // filtruj ramky kompatibilni se socketem
+        const validRams = HARDWARE_CATALOG.RAM.filter(ram => {
+            const sock = selectedCpu.socket;
+            return (sock === "AM4" && ram.ramType === "DDR4") || 
+                   (sock === "AM5" && ram.ramType === "DDR5") || 
+                   sock === "LGA1700";
+        });
+        populateSelect(ramSelect, validRams);
+    }
+    calculateTotal();
+});
+
+// find util spojuje pole a hleda pres find
+function findPartById(id: number): any {
+    const hw = HARDWARE_CATALOG;
+    const allParts = [...hw.CPU, ...hw.MB, ...hw.RAM, ...hw.SSD, ...hw.GPU];
+    return allParts.find(part => part.id === id) || null;
+}
+
+// calc ceny sestavy pomoci foreach
+function calculateTotal() {
+    validateSelection();
+    let total = 0;
+    resultList.innerHTML = "";
+
+    const selectedIds = [
+        parseInt(cpuSelect.value), parseInt(mbSelect.value),
+        parseInt(ramSelect.value), parseInt(ssdSelect.value),
         parseInt(gpuSelect.value)
     ];
 
-    // volitelny hdd
-    if (hddSelect.value) hwIds.push(parseInt(hddSelect.value));
-
-    // oziveni hardveru
-    for (let i = 0; i < hwIds.length; i++) {
-        const data = getHwData(hwIds[i]);
-        if (data) {
-            setup.push(new Hardware(data.id, data.name, data.basePrice, data.type, data.capacity, data.socket, data.ramType));
+    selectedIds.forEach(id => {
+        if (isNaN(id)) return;
+        const part = findPartById(id);
+        
+        if (part) {
+            const item = new Hardware(part.id, part.name, part.basePrice, part.type, part.capacity || 0, part.socket, part.ramType);
+            total += item.calculatePrice();
+            
+            const li = document.createElement("li");
+            li.className = "summary-item";
+            li.innerHTML = `<div>${item.getName()}</div><div>${item.calculatePrice()} kč</div>`;
+            resultList.appendChild(li);
         }
-    }
+    });
 
-    // oziveni softveru
     const osId = parseInt(osSelect.value);
-    let osData = null;
-    for (let i = 0; i < SOFTWARE_CATALOG.length; i++) {
-        if (SOFTWARE_CATALOG[i].id === osId) {
-            osData = SOFTWARE_CATALOG[i];
-            break;
+    if (!isNaN(osId)) {
+        const osData = SOFTWARE_CATALOG.find(os => os.id === osId);
+        if (osData) {
+            const softItem = new Software(osData.id, osData.name, osData.basePrice, chkOffice.checked, chkFlash.checked);
+            total += softItem.calculatePrice();
+            
+            const li = document.createElement("li");
+            li.className = "summary-item";
+            li.innerHTML = `<div>${softItem.getName()}</div><div>${softItem.calculatePrice()} kč</div>`;
+            resultList.appendChild(li);
         }
     }
 
-    if (osData) {
-        setup.push(new Software(osData.id, osData.name, osData.basePrice, chkOffice.checked, chkFlash.checked));
-    }
-
-    // polymorfismus: vypis dat
-    resultList.innerHTML = "";
-    let total = 0;
-
-    for (let i = 0; i < setup.length; i++) {
-        const item = setup[i];
-        const price = item.calculatePrice();
-        total += price;
-
+    const hddCap = parseInt(hddSelect.value);
+    if (!isNaN(hddCap) && hddCap > 0) {
+        const hddCost = (hddCap / 1000) * SERVICE_PRICES.HDD_PER_TB;
+        total += hddCost;
+        
         const li = document.createElement("li");
-        li.innerHTML = `<strong>${item.getName()}</strong> <br> <small>${item.getDetails()}</small> <br> <em>${price} kc</em>`;
+        li.className = "summary-item";
+        li.innerHTML = `<div>hdd ${(hddCap / 1000)}tb</div><div>${hddCost} kč</div>`;
         resultList.appendChild(li);
     }
 
-    totalPriceH3.textContent = `celkova cena: ${total} kc`;
-    
-    // zobrazeni vysledku
-    resultDiv.classList.remove("hidden");
+    totalPriceEl.textContent = `${total} kč`;
+}
+
+// event list
+mbSelect.addEventListener("change", calculateTotal);
+ramSelect.addEventListener("change", calculateTotal);
+ssdSelect.addEventListener("change", calculateTotal);
+hddSelect.addEventListener("change", calculateTotal);
+gpuSelect.addEventListener("change", calculateTotal);
+osSelect.addEventListener("change", calculateTotal);
+chkOffice.addEventListener("change", calculateTotal);
+chkFlash.addEventListener("change", calculateTotal);
+
+// render uix kosiku pres foreach a event delegation pres findindex
+function renderCart() {
+    cartList.innerHTML = "";
+
+    if (cartItems.length === 0) {
+        cartList.innerHTML = '<li class="empty-cart-msg">košík je prázdný</li>';
+        return;
+    }
+
+    cartItems.forEach((item, index) => {
+        const li = document.createElement("li");
+        li.className = "cart-item";
+        li.innerHTML = `
+            <div class="cart-item-info">
+                📦 <strong>${item.getName()}</strong> 
+                <span class="cart-item-qty">${item.quantity}x</span>
+            </div>
+            <div class="cart-item-actions">
+                <span class="cart-item-price">${item.calculatePrice()} kč</span>
+                <button class="btn-delete" data-index="${index}">❌ smazat</button>
+            </div>
+        `;
+        cartList.appendChild(li);
+    });
+
+    // smazani vyuziva findindex pro bezpecne overeni id
+    const delBtns = document.querySelectorAll(".btn-delete");
+    delBtns.forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const targetBtn = e.target as HTMLButtonElement;
+            const idx = parseInt(targetBtn.getAttribute("data-index") || "0");
+            
+            // ukazka vyuziti findindex pred smazanim
+            const itemToDelete = cartItems[idx];
+            if (itemToDelete) {
+                const realIndex = cartItems.findIndex(cartItem => cartItem.getId() === itemToDelete.getId());
+                if (realIndex !== -1) {
+                    cartItems.splice(realIndex, 1);
+                    renderCart();
+                }
+            }
+        });
+    });
+}
+
+// tlacitko add do kosiku pres find
+btnCheckout.addEventListener("click", () => {
+    const cpuId = parseInt(cpuSelect.value);
+    const cpuData = findPartById(cpuId);
+    if (!cpuData) return;
+
+    // hledani existujici sestavy v kosiku pomoci find
+    const existingItem = cartItems.find(item => item.getId() === cpuData.id);
+
+    if (existingItem) {
+        existingItem.quantity++;
+    } else {
+        const currentPrice = parseInt(totalPriceEl.textContent || "0");
+        const newItem = new Hardware(cpuData.id, `sestava (${cpuData.name})`, currentPrice, "sestava");
+        cartItems.push(newItem);
+    }
+
+    renderCart();
 });
 
-// spusteni appky
+// config loader
+function loadPreset(cpu: number, mb: number, ram: number, ssd: number, gpu: number, os: number) {
+    cpuSelect.value = cpu.toString();
+    cpuSelect.dispatchEvent(new Event('change'));
+
+    mbSelect.value = mb.toString();
+    ramSelect.value = ram.toString();
+    ssdSelect.value = ssd.toString();
+    gpuSelect.value = gpu.toString();
+    osSelect.value = os.toString();
+    
+    hddSelect.value = "";
+    chkOffice.checked = false;
+    chkFlash.checked = false;
+
+    calculateTotal();
+}
+
+// dom tlacitka
+const btnOffice = document.getElementById("preset-office") as HTMLButtonElement;
+const btnHome = document.getElementById("preset-home") as HTMLButtonElement;
+const btnGaming = document.getElementById("preset-gaming") as HTMLButtonElement;
+
+btnOffice.addEventListener("click", () => loadPreset(1, 20, 18, 11, 6, 101));
+btnHome.addEventListener("click", () => loadPreset(3, 21, 9, 12, 6, 102));
+btnGaming.addEventListener("click", () => loadPreset(4, 22, 10, 13, 8, 103));
+
+// run
 init();
