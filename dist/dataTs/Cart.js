@@ -14,13 +14,18 @@ export class Cart {
     }
     // vlozeni nove polozky nebo inkrementace quantity u duplicity
     addItem(newItem) {
-        const existingItem = this.items.find(item => item.getId() === newItem.getId());
+        // kontrola duplicity, overujeme ID procesoru a shodu zakladni ceny
+        const existingItem = this.items.find(item => item.getId() === newItem.getId() &&
+            item.getBasePrice() === newItem.getBasePrice());
         if (existingItem) {
+            // jestli se shoduje ID i cena, jedna se o stejnou sestavu
             existingItem.quantity++;
         }
         else {
+            // jestli se cena lisi, prida se jako nova polozka
             this.items.push(newItem);
         }
+        // automaticke prekresleni UI po zmene stavu
         this.render();
     }
     // odstraneni polozky z pole podle indexu

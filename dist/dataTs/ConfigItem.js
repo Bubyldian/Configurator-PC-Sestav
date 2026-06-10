@@ -15,4 +15,6 @@ export class ConfigItem {
     }
     getName() { return this.name; }
     getId() { return this.id; }
+    // getter pro ziskani ciste zakladni ceny jedne polozky, bez quantity
+    getBasePrice() { return this.basePrice; }
 }

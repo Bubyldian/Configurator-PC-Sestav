@@ -18,6 +18,9 @@ export abstract class ConfigItem {
 
     public getName(): string { return this.name; }
     public getId(): number { return this.id; }
+    
+    // getter pro ziskani ciste zakladni ceny jedne polozky, bez quantity
+    public getBasePrice(): number { return this.basePrice; }
 
     // abstraktni metody pro potomky
     abstract calculatePrice(): number;
