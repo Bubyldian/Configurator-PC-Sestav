@@ -3,10 +3,10 @@ import { Hardware } from "./dataTs/Hardware.js";
 import { HARDWARE_CATALOG, SOFTWARE_CATALOG, SERVICE_PRICES } from "./dataTs/data.js";
 import { Cart } from "./dataTs/Cart.js";
 
-// Inicializace samostatne tridy kosiku s predanim ID jeho HTML elementu
+// inicializace kosiku s predanim ID elementu
 const cart = new Cart("cart-list");
 
-// DOM elementy formulare a ziveho nahledu
+// nacteni referenci na DOM elementy
 const cpuSelect = document.getElementById("cpu") as HTMLSelectElement;
 const mbSelect = document.getElementById("mb") as HTMLSelectElement;
 const ramSelect = document.getElementById("ram") as HTMLSelectElement;
@@ -22,7 +22,7 @@ const resultList = document.getElementById("result-list") as HTMLUListElement;
 const totalPriceEl = document.getElementById("total-price") as HTMLHeadingElement;
 const btnCheckout = document.querySelector(".btn-checkout") as HTMLButtonElement;
 
-// Generovani moznosti pro selecty pomoci foreach
+// naplneni selectu daty pomoci foreach
 function populateSelect(select: HTMLSelectElement, items: any[]) {
     select.innerHTML = '<option value="">-- vyber --</option>';
     items.forEach(item => {
@@ -33,17 +33,17 @@ function populateSelect(select: HTMLSelectElement, items: any[]) {
     });
 }
 
-// Inicializace aplikace pri nacteni stranky
+// prvotni nastaveni aplikace po nacteni stranky
 function init() {
     populateSelect(cpuSelect, HARDWARE_CATALOG.CPU);
     populateSelect(ssdSelect, HARDWARE_CATALOG.SSD);
     populateSelect(gpuSelect, HARDWARE_CATALOG.GPU);
     populateSelect(osSelect, SOFTWARE_CATALOG);
     validateSelection();
-    cart.render(); // Prvotni vykresleni prazdneho kosiku
+    cart.render();
 }
 
-// Kontrola kompatibility a odemykani/zamykani prvku
+// overeni vyplneni povinnych poli a prepinani disabled stavu
 function validateSelection() {
     const cpuId = parseInt(cpuSelect.value);
     
@@ -57,7 +57,6 @@ function validateSelection() {
         ramSelect.disabled = false;
     }
 
-    // Tlacitko pro vlozeni do kosiku se odemkne jen pri kompletnim vyplneni povinnych poli
     const isComplete = cpuSelect.value && mbSelect.value && ramSelect.value && 
                        ssdSelect.value && gpuSelect.value && osSelect.value;
 
@@ -66,7 +65,7 @@ function validateSelection() {
     btnCheckout.style.cursor = isComplete ? "pointer" : "not-allowed";
 }
 
-// Reaktivni zmena zakladni desky a RAM podle zvoleneho socketu procesoru
+// zmena CPU -> dynamicka filtrace desek a pameti podle socketu
 cpuSelect.addEventListener("change", () => {
     validateSelection();
     const cpuId = parseInt(cpuSelect.value);
@@ -75,11 +74,11 @@ cpuSelect.addEventListener("change", () => {
     const selectedCpu = HARDWARE_CATALOG.CPU.find(cpu => cpu.id === cpuId);
 
     if (selectedCpu) {
-        // Filtrujeme zakladni desky podle socketu
+        // filtrace kompatibilnich MB
         const validMbs = HARDWARE_CATALOG.MB.filter(mb => mb.socket === selectedCpu.socket);
         populateSelect(mbSelect, validMbs);
 
-        // Filtrujeme RAM podle generace (DDR4 pro AM4, DDR5 pro AM5, Intel LGA1700 zvladne oboje)
+        // filtrace kompatibilnich RAM (DDR4 vs DDR5)
         const validRams = HARDWARE_CATALOG.RAM.filter(ram => {
             const sock = selectedCpu.socket;
             return (sock === "AM4" && ram.ramType === "DDR4") || 
@@ -91,14 +90,14 @@ cpuSelect.addEventListener("change", () => {
     calculateTotal();
 });
 
-// Pomocna funkce pro vyhledani komponentu v celem katalogu podle ID
+// pomocne vyhledani komponentu v katalogu podle ID
 function findPartById(id: number): any {
     const hw = HARDWARE_CATALOG;
     const allParts = [...hw.CPU, ...hw.MB, ...hw.RAM, ...hw.SSD, ...hw.GPU];
     return allParts.find(part => part.id === id) || null;
 }
 
-// Prubezny prepocet ceny aktualni sestavy v zivem nahledu (Summary sidebar)
+// prubezny vypocet a rendering ceny aktualni konfigurace
 function calculateTotal() {
     validateSelection();
     let total = 0;
@@ -110,7 +109,7 @@ function calculateTotal() {
         parseInt(gpuSelect.value)
     ];
 
-    // Iterace pres hardwarove komponenty a polymorfni plneni ziveho rozpisu
+    // vypocet ceny a vypis hw polozek
     selectedIds.forEach(id => {
         if (isNaN(id)) return;
         const part = findPartById(id);
@@ -126,7 +125,7 @@ function calculateTotal() {
         }
     });
 
-    // Zpracovani software a pridavnych sluzeb
+    // vypocet ceny OS a doplňků
     const osId = parseInt(osSelect.value);
     if (!isNaN(osId)) {
         const osData = SOFTWARE_CATALOG.find(os => os.id === osId);
@@ -141,7 +140,7 @@ function calculateTotal() {
         }
     }
 
-    // Vypocet ceny pro volitelny klasicky HDD
+    // vypocet ceny volitelneho HDD
     const hddCap = parseInt(hddSelect.value);
     if (!isNaN(hddCap) && hddCap > 0) {
         const hddCost = (hddCap / 1000) * SERVICE_PRICES.HDD_PER_TB;
@@ -156,7 +155,7 @@ function calculateTotal() {
     totalPriceEl.textContent = `${total} Kč`;
 }
 
-// Posluchace udalosti pro zmeny ve formulari pro okamzity prepocet ceny
+// listeners pro prepocitavani sumy
 mbSelect.addEventListener("change", calculateTotal);
 ramSelect.addEventListener("change", calculateTotal);
 ssdSelect.addEventListener("change", calculateTotal);
@@ -166,23 +165,19 @@ osSelect.addEventListener("change", calculateTotal);
 chkOffice.addEventListener("change", calculateTotal);
 chkFlash.addEventListener("change", calculateTotal);
 
-// Zpracovani tlacitka "Do kosiku" - delegace dat do instance tridy Cart
+// pridani sestavy do kosiku
 btnCheckout.addEventListener("click", () => {
     const cpuId = parseInt(cpuSelect.value);
     const cpuData = findPartById(cpuId);
     if (!cpuData) return;
 
-    // Ziskame aktualni celkovou cenu vypoctenou na klientske strane
     const currentPrice = parseInt(totalPriceEl.textContent || "0");
-    
-    // Vytvorime novy objekt hardwarove sestavy (identifikujeme ji primarne podle CPU id)
     const newItem = new Hardware(cpuData.id, `Sestava (${cpuData.name})`, currentPrice, "sestava");
     
-    // Pridame do kosiku - vnitrni metoda tridy Cart uz sama vyresi quantity i nasledny render
     cart.addItem(newItem);
 });
 
-// Pomocna funkce pro rychle predvyplneni konfigurace (Preset loader)
+// pomocne predvyplneni presetu
 function loadPreset(cpu: number, mb: number, ram: number, ssd: number, gpu: number, os: number) {
     cpuSelect.value = cpu.toString();
     cpuSelect.dispatchEvent(new Event('change'));
@@ -209,5 +204,5 @@ btnOffice.addEventListener("click", () => loadPreset(1, 20, 18, 11, 6, 101));
 btnHome.addEventListener("click", () => loadPreset(3, 21, 9, 12, 6, 102));
 btnGaming.addEventListener("click", () => loadPreset(4, 22, 10, 13, 8, 103));
 
-// Spusteni aplikace
+// spusteni aplikace
 init();

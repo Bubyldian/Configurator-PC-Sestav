@@ -1,11 +1,11 @@
 import { ConfigItem } from "./ConfigItem.js";
 
 export class Cart {
-    // privatni stavove pole pro ukladani polozek kosiku
+    // privatni pole pro ukladani polozek v pameti
     private items: ConfigItem[] = [];
     private cartListElement: HTMLUListElement;
 
-    // konstruktor nastavi vazbu na prislusny DOM element
+    // konstruktor s inicializaci a kontrolou existence elementu v DOM
     constructor(cartListId: string) {
         this.cartListElement = document.getElementById(cartListId) as HTMLUListElement;
         if (!this.cartListElement) {
@@ -13,29 +13,25 @@ export class Cart {
         }
     }
 
-    // verejny getter pro pristup k polozkam z vnejsiho kodu
+    // getter pro vnejsi pristupy k polozkam
     public getItems(): ConfigItem[] {
         return this.items;
     }
 
-    // metoda pro pridani polozky nebo zvyseni quantity pri duplicite
+    // vlozeni nove polozky nebo inkrementace quantity u duplicity
     public addItem(newItem: ConfigItem): void {
-        // kontrola existence polozky v poli podle ID
         const existingItem = this.items.find(item => item.getId() === newItem.getId());
 
         if (existingItem) {
-            // pokud existuje, zvysi se pouze pocet kusu
             existingItem.quantity++;
         } else {
-            // pokud neexistuje, prida se novy objekt do pole
             this.items.push(newItem);
         }
 
-        // automaticke prekresleni UI po zmene stavu
         this.render();
     }
 
-    // odstraneni polozky z pole na zaklade indexu
+    // odstraneni polozky z pole podle indexu
     public removeItem(index: number): void {
         if (index >= 0 && index < this.items.length) {
             this.items.splice(index, 1);
@@ -43,23 +39,21 @@ export class Cart {
         }
     }
 
-    // komplektni vycisteni pole kosiku
+    // vycisteni celeho obsahu kosiku
     public clear(): void {
         this.items = [];
         this.render();
     }
 
-    // vykresleni aktualniho stavu kosiku do HTML struktury
+    // vykresleni stavu kosiku do HTML a prirazeni eventu
     public render(): void {
         this.cartListElement.innerHTML = "";
 
-        // zobrazeni defaultni zpravy pro prazdny kosik
         if (this.items.length === 0) {
             this.cartListElement.innerHTML = '<li class="empty-cart-msg">košík je prázdný</li>';
             return;
         }
 
-        // generovani HTML obsahu pro kazdy prvek v poli items
         this.items.forEach((item, index) => {
             const li = document.createElement("li");
             li.className = "cart-item";
@@ -76,7 +70,7 @@ export class Cart {
             this.cartListElement.appendChild(li);
         });
 
-        // prirazeni event listeneru pro smazani na vygenerovana tlacitka
+        // delegace udalosti smazani na tlacitka
         const delBtns = this.cartListElement.querySelectorAll(".btn-delete");
         delBtns.forEach(btn => {
             btn.addEventListener("click", (e) => {
